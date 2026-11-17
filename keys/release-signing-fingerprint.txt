@@ -1,0 +1,16 @@
+Textile ERP Release Signing Key (ERP-Updates)
+=============================================
+
+Fingerprint : 2BD1 7B48 306C BE9C D593 5231 B87F FCDC DA27 1C43
+Full hex    : 2BD17B48306CBE9CD5935231B87FFCDCDA271C43
+Algorithm   : Ed25519 (OpenPGP, sign-only, no expiry)
+UID         : Textile ERP Release Signing (ERP-Updates) <releases@erp-updates.invalid>
+Created     : 2026-11-17
+
+Every release ships a `SHA256SUMS` file signed by this key
+(`SHA256SUMS.sig`, detached armored signature). The public key for
+verification is `keys/release-signing-public.asc` in this repository.
+
+Before trusting a download, verify that `gpg --verify` reports this exact
+fingerprint. If the fingerprint does not match, do NOT install the update —
+see docs/UPDATE-DELIVERY.md ("Key rotation & compromise response").

@@ -1,0 +1,94 @@
+name: Package update & draft release
+run-name: Draft release ${{ inputs.version }} (${{ inputs.channel }})
+
+# Manually dispatched pipeline that builds an update package, signs its
+# checksums, and creates a DRAFT release. It can never publish a release —
+# publishing is a deliberate manual action gated by the checklist in
+# docs/UPDATE-DELIVERY.md (which is currently BLOCKED because the ERP
+# updater and recovery flow are incomplete).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version (semver, e.g. 1.4.0)"
+        required: true
+        type: string
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - stable
+          - beta
+        default: stable
+      notes:
+        description: "Release notes (markdown)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-draft
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Build, sign & draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Import release signing key
+        env:
+          RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -z "$RELEASE_GPG_PRIVATE_KEY" ]; then
+            echo "::error::RELEASE_GPG_PRIVATE_KEY secret is not set" >&2
+            exit 1
+          fi
+          gpg --batch --import <<< "$RELEASE_GPG_PRIVATE_KEY"
+          gpg --list-secret-keys --keyid-format long
+
+      - name: Build update package
+        run: bash scripts/package-update.sh payload "${{ inputs.version }}" "${{ inputs.channel }}"
+
+      - name: Sign checksums
+        env:
+          GPG_KEY_ID: ${{ vars.RELEASE_GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+        run: bash scripts/sign-checksums.sh dist
+
+      - name: Create DRAFT release (never auto-publishes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          TAG="v${VERSION}"
+          TITLE="[DRAFT] ERP update ${VERSION} (${CHANNEL})"
+          {
+            echo "> [!WARNING]"
+            echo "> **DRAFT — not published.** The ERP updater and its recovery flow"
+            echo "> are still incomplete. Do not publish or distribute this package"
+            echo "> until the checklist in docs/UPDATE-DELIVERY.md is fully green."
+            echo
+            echo "Channel: \`${CHANNEL}\`"
+            echo "Signing key fingerprint: \`2BD17B48306CBE9CD5935231B87FFCDCDA271C43\`"
+            echo
+            if [ -n "$NOTES" ]; then echo "$NOTES"; else echo "_No release notes provided._"; fi
+          } > notes.md
+          gh release create "$TAG" \
+            --draft \
+            --title "$TITLE" \
+            --notes-file notes.md \
+            --target "$GITHUB_SHA" \
+            "dist/erp-update-${VERSION}-${CHANNEL}.zip" \
+            dist/SHA256SUMS \
+            dist/SHA256SUMS.sig
+          echo "::notice::Draft release created. Publishing is manual and currently blocked by policy (docs/UPDATE-DELIVERY.md)."
