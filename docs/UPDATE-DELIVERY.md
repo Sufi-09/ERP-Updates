@@ -68,11 +68,11 @@ The key is Ed25519 (sign-only). Verify locally with
      banner stating it must not be published yet.
 4. The workflow can never publish. Publishing is manual only.
 
-> Note on tags: creating a draft release may create the git tag `v<version>`
-> immediately (GitHub behavior differs between UI/API paths). Check
-> `git ls-remote --tags origin` after drafting; if an orphan tag exists for
-> an abandoned draft, delete the tag along with the draft release
-> (`git push origin :refs/tags/v<version>`).
+> Note on tags (verified behavior): a **draft** release does not create its
+> git tag while unpublished — the draft stays "untagged" and the `v<version>`
+> tag is created from `--target` at publish time. If you abandon a draft,
+> delete the draft release; if a tag was ever created manually, clean it with
+> `git push origin :refs/tags/v<version>`.
 
 ## 5. Packaging (manual, offline maintainer machine)
 
