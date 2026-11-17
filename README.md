@@ -44,6 +44,8 @@ Signing key fingerprint (verify against `keys/release-signing-fingerprint.txt`):
 │   ├── release-signing-public.asc
 │   └── release-signing-fingerprint.txt
 ├── payload/                      ← update payload (placeholder for now)
+├── tools/
+│   └── erpupdate1/               ← EXPERIMENTAL ERPUPDATE1 tooling (draft/test only)
 └── .github/workflows/release.yml ← manual dispatch → draft release
 ```
 

@@ -19,6 +19,17 @@ to re-send it.
 
 ## 2. Authenticate for downloads
 
+> [!NOTE]
+> **Access model decision pending (owner approval required).** The client
+> account must NOT receive write access — on a personal-account private
+> repository a plain collaborator invite would grant write. Options under
+> consideration: (a) move the repo to an organization and grant the **Read**
+> role; (b) a credential-broker design that hands the updater short-lived
+> read-only tokens. A GitHub App is only viable if the client has a safe way
+> to obtain short-lived installation tokens — **never embed a GitHub App
+> private key in the client**. Organization Read access and a credential
+> broker are distinct options; both need owner approval.
+
 Because the repository is private, release downloads require
 authentication. Pick one option:
 
