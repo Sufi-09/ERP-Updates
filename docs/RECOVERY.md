@@ -43,6 +43,7 @@
 
 ## TODO / exit criteria (blocking production releases)
 
+- [ ] Windows disposable database test passes (blocked as of 2026-11-17).
 - [ ] Updater implements stage/verify/swap with health checks.
 - [ ] Restore points created before every apply, with retention policy.
 - [ ] `rollback` command tested from version N to N-1, including
